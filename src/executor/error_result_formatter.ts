@@ -12,8 +12,8 @@ import {
   type GraphQLSchema,
   type SelectionNode,
 } from "graphql";
-import { DocumentError, ImplementationError, UNREPORTED_ERROR, type FormattedError, type ExecutionError } from "../errors";
-import { UNDEFINED, isListLike, unwrapNonNull, unwrapType } from "../util";
+import { DocumentError, ImplementationError, UNREPORTED_ERROR, type FormattedError, type ExecutionError } from "../errors.js";
+import { UNDEFINED, isListLike, unwrapNonNull, unwrapType } from "../util.js";
 
 /**
  * Walks the executor's assembled result tree in depth-first order to

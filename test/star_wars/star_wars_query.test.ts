@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { Executor } from "../../src";
-import { STAR_WARS_SCHEMA, STAR_WARS_RESOLVERS } from "./star_wars_fixtures";
+import { Executor } from "../../src/index.js";
+import { STAR_WARS_SCHEMA, STAR_WARS_RESOLVERS } from "./star_wars_fixtures.js";
 
 function executeStarWars(query: string, variables: Record<string, unknown> = {}) {
   return Executor.build({

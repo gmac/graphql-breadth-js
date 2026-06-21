@@ -1,5 +1,5 @@
 import type { ASTNode } from "graphql";
-import type { ExecutionField } from "./executor/execution_field";
+import type { ExecutionField } from "./executor/execution_field.js";
 
 export type ErrorPath = Array<string | number>;
 export type Extensions = Record<string, unknown>;

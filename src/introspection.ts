@@ -14,9 +14,9 @@ import {
   type GraphQLInputField,
   type GraphQLObjectType,
 } from "graphql";
-import type { ExecutionField } from "./executor/execution_field";
-import type { ResolverMap } from "./executor/types";
-import { FieldResolver, MethodResolver } from "./field_resolvers";
+import type { ExecutionField } from "./executor/execution_field.js";
+import type { ResolverMap } from "./executor/types.js";
+import { FieldResolver, MethodResolver } from "./field_resolvers.js";
 
 /**
  * Introspection runtime for the breadth executor.

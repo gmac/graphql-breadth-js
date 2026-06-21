@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { buildSchema } from "graphql";
-import { Executor, FieldResolver, type ResolverMap } from "../../src";
-import type { ExecutionField } from "../../src/executor/execution_field";
+import { Executor, FieldResolver, type ResolverMap } from "../../src/index.js";
+import type { ExecutionField } from "../../src/executor/execution_field.js";
 
 const SDL = `
   enum Color { RED GREEN BLUE }

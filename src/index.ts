@@ -1,11 +1,11 @@
-export { Executor } from "./executor/executor";
-export type { BuildOptions, GraphQLResult } from "./executor/executor";
-export { ExecutionField } from "./executor/execution_field";
-export { ExecutionScope } from "./executor/execution_scope";
-export { AbstractExecutionScope } from "./executor/abstract_execution_scope";
-export { ExecutionPromise, Deferred } from "./executor/execution_promise";
-export { HasAttributes } from "./executor/has_attributes";
-export { LazyLoader, type LazyLoaderConstructor } from "./lazy_loader";
+export { Executor } from "./executor/executor.js";
+export type { BuildOptions, GraphQLResult } from "./executor/executor.js";
+export { ExecutionField } from "./executor/execution_field.js";
+export { ExecutionScope } from "./executor/execution_scope.js";
+export { AbstractExecutionScope } from "./executor/abstract_execution_scope.js";
+export { ExecutionPromise, Deferred } from "./executor/execution_promise.js";
+export { HasAttributes } from "./executor/has_attributes.js";
+export { LazyLoader, type LazyLoaderConstructor } from "./lazy_loader.js";
 export {
   FieldResolver,
   ObjectKeyResolver,
@@ -13,18 +13,18 @@ export {
   SelfResolver,
   ValueResolver,
   type ResolveResult,
-} from "./field_resolvers";
+} from "./field_resolvers.js";
 export {
   TYPENAME_RESOLVER,
   ENTRYPOINT_RESOLVERS,
   TYPE_RESOLVERS,
-} from "./introspection";
+} from "./introspection.js";
 export {
   InterpretedFieldResolver,
   InterpretedPromiseLoader,
   interpretSchema,
   type InterpretSchemaOptions,
-} from "./interpreter";
+} from "./interpreter.js";
 export {
   BreadthError,
   DocumentError,
@@ -41,6 +41,6 @@ export {
   type FormattedError,
   type ErrorPath,
   type Extensions,
-} from "./errors";
-export type { ResolverMap, ResolverEntry, TypeResolverFn } from "./executor/types";
-export { UNDEFINED, unwrapNonNull, unwrapType, isListLike } from "./util";
+} from "./errors.js";
+export type { ResolverMap, ResolverEntry, TypeResolverFn } from "./executor/types.js";
+export { UNDEFINED, unwrapNonNull, unwrapType, isListLike } from "./util.js";

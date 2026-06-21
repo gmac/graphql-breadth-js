@@ -20,15 +20,15 @@
 //   }
 
 import { parse, print } from "graphql";
-import { bench, benchAsync, compare, envInts, envList } from "./bench";
-import { buildBreadthTree } from "./data";
+import { bench, benchAsync, compare, envInts, envList } from "./bench.js";
+import { buildBreadthTree } from "./data.js";
 import {
   execBreadth,
   execGraphQLJsAsync,
   execGraphQLJsSync,
   isAsyncFields,
   validateResultsMatch,
-} from "./exec";
+} from "./exec.js";
 
 const depths = envInts("DEPTHS", "1,18");
 const breadths = envInts("BREADTHS", "1,100,1000,10000");

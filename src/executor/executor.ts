@@ -30,17 +30,17 @@ import {
   UnknownLazyRejectionError,
   UNREPORTED_ERROR,
   type FormattedError,
-} from "../errors";
-import type { FieldResolver } from "../field_resolvers";
-import { LazyLoader, type LazyLoaderConstructor } from "../lazy_loader";
-import { isListLike, isThenable, unwrapNonNull, unwrapType, UNDEFINED } from "../util";
-import { AbstractExecutionScope } from "./abstract_execution_scope";
-import { ErrorResultFormatter } from "./error_result_formatter";
-import { ExecutionField } from "./execution_field";
-import { ExecutionPlanner } from "./execution_planner";
-import { ExecutionPromise } from "./execution_promise";
-import { ExecutionScope } from "./execution_scope";
-import type { ResolverMap, TypeResolverFn } from "./types";
+} from "../errors.js";
+import type { FieldResolver } from "../field_resolvers.js";
+import { LazyLoader, type LazyLoaderConstructor } from "../lazy_loader.js";
+import { isListLike, isThenable, unwrapNonNull, unwrapType, UNDEFINED } from "../util.js";
+import { AbstractExecutionScope } from "./abstract_execution_scope.js";
+import { ErrorResultFormatter } from "./error_result_formatter.js";
+import { ExecutionField } from "./execution_field.js";
+import { ExecutionPlanner } from "./execution_planner.js";
+import { ExecutionPromise } from "./execution_promise.js";
+import { ExecutionScope } from "./execution_scope.js";
+import type { ResolverMap, TypeResolverFn } from "./types.js";
 
 export interface BuildOptions {
   schema: GraphQLSchema;

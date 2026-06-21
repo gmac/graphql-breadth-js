@@ -6,9 +6,9 @@ import {
   FieldResolver,
   type GraphQLResult,
   type ResolverMap,
-} from "../../src";
-import type { ExecutionField } from "../../src/executor/execution_field";
-import { EventCollector } from "../test_helper";
+} from "../../src/index.js";
+import type { ExecutionField } from "../../src/executor/execution_field.js";
+import { EventCollector } from "../test_helper.js";
 
 const TEST_SCHEMA = buildSchema(`
   interface Node {

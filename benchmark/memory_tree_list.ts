@@ -7,16 +7,16 @@
 //   ITERATIONS=1000     Per-shape iteration count (default: 1000)
 
 import { parse, print } from "graphql";
-import { envInts, envList } from "./bench";
-import { buildBreadthTree } from "./data";
+import { envInts, envList } from "./bench.js";
+import { buildBreadthTree } from "./data.js";
 import {
   execBreadth,
   execGraphQLJsAsync,
   execGraphQLJsSync,
   isAsyncFields,
   validateResultsMatch,
-} from "./exec";
-import { compareMemory, memProfile, memProfileAsync } from "./mem";
+} from "./exec.js";
+import { compareMemory, memProfile, memProfileAsync } from "./mem.js"
 
 const depths = envInts("DEPTHS", "1,5");
 const breadths = envInts("BREADTHS", "100,1000");

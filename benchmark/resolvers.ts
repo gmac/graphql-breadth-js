@@ -2,9 +2,9 @@ import {
   FieldResolver,
   LazyLoader,
   type ResolverMap,
-} from "../src";
-import type { ExecutionField } from "../src/executor/execution_field";
-import type { ExecutionPromise } from "../src/executor/execution_promise";
+} from "../src/index.js";
+import type { ExecutionField } from "../src/executor/execution_field.js";
+import type { ExecutionPromise } from "../src/executor/execution_promise.js";
 
 // Generic key-based property accessor: reads exec_field.key off each object.
 // Used for id/string/integer/boolean/widget/widgets/resolveByMethod.

@@ -7,12 +7,12 @@ import {
   type GraphQLResolveInfo,
   type GraphQLSchema,
 } from "graphql";
-import { ExecutionError, ImplementationError } from "./errors";
-import { ExecutionField } from "./executor/execution_field";
-import type { ResolverEntry, ResolverMap, TypeResolverFn } from "./executor/types";
-import { FieldResolver, ObjectKeyResolver, type ResolveResult } from "./field_resolvers";
-import { LazyLoader, type LazyLoaderConstructor } from "./lazy_loader";
-import { isThenable } from "./util";
+import { ExecutionError, ImplementationError } from "./errors.js";
+import { ExecutionField } from "./executor/execution_field.js";
+import type { ResolverEntry, ResolverMap, TypeResolverFn } from "./executor/types.js";
+import { FieldResolver, ObjectKeyResolver, type ResolveResult } from "./field_resolvers.js";
+import { LazyLoader, type LazyLoaderConstructor } from "./lazy_loader.js";
+import { isThenable } from "./util.js";
 
 /**
  * graphql-js interpreter for the breadth-first executor. Runs conventional

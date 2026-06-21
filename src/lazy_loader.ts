@@ -1,6 +1,6 @@
-import { ImplementationError, MethodNotImplementedError } from "./errors";
-import { ExecutionPromise, Deferred } from "./executor/execution_promise";
-import type { ExecutionField } from "./executor/execution_field";
+import { ImplementationError, MethodNotImplementedError } from "./errors.js";
+import { ExecutionPromise, Deferred } from "./executor/execution_promise.js";
+import type { ExecutionField } from "./executor/execution_field.js";
 
 const KEY_OMISSION: unique symbol = Symbol("KEY_OMISSION");
 type KeyOmission = typeof KEY_OMISSION;
