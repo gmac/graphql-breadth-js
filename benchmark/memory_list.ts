@@ -6,15 +6,15 @@
 //   ITERATIONS=2000     Per-shape iteration count (default: 2000)
 
 import { parse, print } from "graphql";
-import { envInts, envList } from "./bench.js";
-import { buildList } from "./data.js";
+import { envInts, envList } from "./bench.ts";
+import { buildList } from "./data.ts";
 import {
   execBreadth,
   execGraphQLJsAsync,
   execGraphQLJsSync,
   isAsyncFields,
   validateResultsMatch,
-} from "./exec.js";
+} from "./exec.ts";
 import { compareMemory, memProfile, memProfileAsync } from "./mem.js"
 
 const sizes = envInts("SIZES", "100,1000,10000");

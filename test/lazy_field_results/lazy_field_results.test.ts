@@ -9,9 +9,9 @@ import {
   type LazyLoaderConstructor,
   type ResolveResult,
   type ResolverMap,
-} from "../../src/index.js";
-import type { ExecutionField } from "../../src/executor/execution_field.js";
-import { EventCollector } from "../test_helper.js";
+} from "../../src/index.ts";
+import type { ExecutionField } from "../../src/executor/execution_field.ts";
+import { EventCollector } from "../test_helper.ts";
 
 const SCHEMA = buildSchema(`
   type Widget {

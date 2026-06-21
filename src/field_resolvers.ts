@@ -1,5 +1,5 @@
-import { ExecutionPromise } from "./executor/execution_promise.js";
-import type { ExecutionField } from "./executor/execution_field.js";
+import { ExecutionPromise } from "./executor/execution_promise.ts";
+import type { ExecutionField } from "./executor/execution_field.ts";
 
 export type ResolveResult = unknown[] | ExecutionPromise<unknown[]>;
 

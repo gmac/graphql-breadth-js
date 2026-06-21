@@ -4,8 +4,8 @@ import {
   ObjectKeyResolver,
   ExecutionError,
   type ResolverMap,
-} from "../../src/index.js";
-import type { ExecutionField } from "../../src/executor/execution_field.js";
+} from "../../src/index.ts";
+import type { ExecutionField } from "../../src/executor/execution_field.ts";
 
 // Ported from the graphql-js reference implementation.
 // https://github.com/graphql/graphql-js/tree/16.x.x/src/__tests__

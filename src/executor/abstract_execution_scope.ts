@@ -1,7 +1,7 @@
 import type { GraphQLAbstractType } from "graphql";
-import type { ExecutionField } from "./execution_field.js";
-import type { ExecutionScope } from "./execution_scope.js";
-import type { Executor } from "./executor.js";
+import type { ExecutionField } from "./execution_field.ts";
+import type { ExecutionScope } from "./execution_scope.ts";
+import type { Executor } from "./executor.ts";
 
 /**
  * An abstract type holding the concrete execution scopes it resolved.

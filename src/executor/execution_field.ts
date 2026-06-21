@@ -6,13 +6,13 @@ import {
   type GraphQLOutputType,
   type SelectionNode as GqlSelectionNode,
 } from "graphql";
-import { ExecutionError, ExecutionErrorSet } from "../errors.js";
-import { ExecutionPromise } from "./execution_promise.js";
-import { HasAttributes } from "./has_attributes.js";
-import { type LazyLoaderConstructor } from "../lazy_loader.js";
-import type { ExecutionScope } from "./execution_scope.js";
-import type { Executor } from "./executor.js";
-import type { FieldResolver } from "../field_resolvers.js";
+import { ExecutionError, ExecutionErrorSet } from "../errors.ts";
+import { ExecutionPromise } from "./execution_promise.ts";
+import { HasAttributes } from "./has_attributes.ts";
+import { type LazyLoaderConstructor } from "../lazy_loader.ts";
+import type { ExecutionScope } from "./execution_scope.ts";
+import type { Executor } from "./executor.ts";
+import type { FieldResolver } from "../field_resolvers.ts";
 
 /**
  * A field to execute. This is the primary unit of

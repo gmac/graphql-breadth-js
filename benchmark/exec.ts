@@ -4,9 +4,9 @@ import {
   type DocumentNode,
   type ExecutionResult,
 } from "graphql";
-import { Executor } from "../src/index.js";
-import { schema, createBenchContext } from "./schema.js";
-import { breadthResolvers } from "./resolvers.js";
+import { Executor } from "../src/index.ts";
+import { schema, createBenchContext } from "./schema.ts";
+import { breadthResolvers } from "./resolvers.ts";
 
 const LAZY_FIELDS = new Set(["lazy", "lazyThen"]);
 

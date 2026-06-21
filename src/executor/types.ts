@@ -1,6 +1,6 @@
 // A few resolver-related types shared across executor modules.
 
-import type { FieldResolver } from "../field_resolvers.js";
+import type { FieldResolver } from "../field_resolvers.ts";
 import type { GraphQLNamedType } from "graphql";
 
 export type TypeResolverFn = (

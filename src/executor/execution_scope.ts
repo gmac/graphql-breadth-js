@@ -4,10 +4,10 @@ import type {
   InlineFragmentNode,
   GraphQLObjectType,
 } from "graphql";
-import { HasAttributes } from "./has_attributes.js";
-import type { Executor } from "./executor.js";
-import type { ExecutionField } from "./execution_field.js";
-import type { AbstractExecutionScope } from "./abstract_execution_scope.js";
+import { HasAttributes } from "./has_attributes.ts";
+import type { Executor } from "./executor.ts";
+import type { ExecutionField } from "./execution_field.ts";
+import type { AbstractExecutionScope } from "./abstract_execution_scope.ts";
 
 export type SelectionNode = FieldNode | FragmentSpreadNode | InlineFragmentNode;
 

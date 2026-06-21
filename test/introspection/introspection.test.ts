@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import { buildSchema, executeSync, getIntrospectionQuery, parse } from "graphql";
-import { Executor, type GraphQLResult } from "../../src/index.js";
+import { Executor, type GraphQLResult } from "../../src/index.ts";
 
 const SDL = `
   """A character in the saga."""

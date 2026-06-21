@@ -12,15 +12,15 @@
 //   }
 
 import { parse, print } from "graphql";
-import { bench, benchAsync, compare, envInts, envList } from "./bench.js";
-import { buildList } from "./data.js";
+import { bench, benchAsync, compare, envInts, envList } from "./bench.ts";
+import { buildList } from "./data.ts";
 import {
   execBreadth,
   execGraphQLJsAsync,
   execGraphQLJsSync,
   isAsyncFields,
   validateResultsMatch,
-} from "./exec.js";
+} from "./exec.ts";
 
 const sizes = envInts("SIZES", "1,10,100,1000,10000");
 const fields = envList("FIELDS", "id");

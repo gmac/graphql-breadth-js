@@ -1,11 +1,11 @@
-export { Executor } from "./executor/executor.js";
-export type { BuildOptions, GraphQLResult } from "./executor/executor.js";
-export { ExecutionField } from "./executor/execution_field.js";
-export { ExecutionScope } from "./executor/execution_scope.js";
-export { AbstractExecutionScope } from "./executor/abstract_execution_scope.js";
-export { ExecutionPromise, Deferred } from "./executor/execution_promise.js";
-export { HasAttributes } from "./executor/has_attributes.js";
-export { LazyLoader, type LazyLoaderConstructor } from "./lazy_loader.js";
+export { Executor } from "./executor/executor.ts";
+export type { BuildOptions, GraphQLResult } from "./executor/executor.ts";
+export { ExecutionField } from "./executor/execution_field.ts";
+export { ExecutionScope } from "./executor/execution_scope.ts";
+export { AbstractExecutionScope } from "./executor/abstract_execution_scope.ts";
+export { ExecutionPromise, Deferred } from "./executor/execution_promise.ts";
+export { HasAttributes } from "./executor/has_attributes.ts";
+export { LazyLoader, type LazyLoaderConstructor } from "./lazy_loader.ts";
 export {
   FieldResolver,
   ObjectKeyResolver,
@@ -13,18 +13,18 @@ export {
   SelfResolver,
   ValueResolver,
   type ResolveResult,
-} from "./field_resolvers.js";
+} from "./field_resolvers.ts";
 export {
   TYPENAME_RESOLVER,
   ENTRYPOINT_RESOLVERS,
   TYPE_RESOLVERS,
-} from "./introspection.js";
+} from "./introspection.ts";
 export {
   InterpretedFieldResolver,
   InterpretedPromiseLoader,
   interpretSchema,
   type InterpretSchemaOptions,
-} from "./interpreter.js";
+} from "./interpreter.ts";
 export {
   BreadthError,
   DocumentError,
@@ -41,6 +41,6 @@ export {
   type FormattedError,
   type ErrorPath,
   type Extensions,
-} from "./errors.js";
-export type { ResolverMap, ResolverEntry, TypeResolverFn } from "./executor/types.js";
-export { UNDEFINED, unwrapNonNull, unwrapType, isListLike } from "./util.js";
+} from "./errors.ts";
+export type { ResolverMap, ResolverEntry, TypeResolverFn } from "./executor/types.ts";
+export { UNDEFINED, unwrapNonNull, unwrapType, isListLike } from "./util.ts";
