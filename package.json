@@ -2,6 +2,7 @@
   "name": "graphql-breadth",
   "version": "0.1.0",
   "description": "Breadth-first GraphQL executor",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
