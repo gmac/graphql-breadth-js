@@ -9,6 +9,14 @@ export interface FormattedError {
   locations?: Array<{ line: number; column: number }>;
   path?: ErrorPath;
   extensions?: Extensions;
+  /**
+   * The original error this was derived from (the resolver's thrown error / the
+   * `cause`), attached non-enumerably so it never serializes onto the wire but is
+   * available to callers that need to inspect the source — e.g. an error masker
+   * doing `instanceof` checks on framework error classes. Populated by
+   * {@link ExecutionError.toJSON}.
+   */
+  originalError?: unknown;
 }
 
 export class BreadthError extends Error {
@@ -111,6 +119,13 @@ export class ExecutionError extends BreadthError {
     if (this.extensions && Object.keys(this.extensions).length > 0) {
       formatted.extensions = JSON.parse(JSON.stringify(this.extensions));
     }
+    // Preserve the source error (non-enumerable, so it does not serialize) so
+    // callers can recover the original thrown error instance.
+    Object.defineProperty(formatted, "originalError", {
+      value: this.cause ?? this,
+      enumerable: false,
+      configurable: true,
+    });
     return formatted;
   }
 

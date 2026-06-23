@@ -879,6 +879,16 @@ function graphqlErrorToJSON(e: GraphQLError): FormattedError {
   if (e.path && e.path.length > 0) {
     h.path = e.path.slice() as Array<string | number>;
   }
+  if (e.extensions && Object.keys(e.extensions).length > 0) {
+    h.extensions = { ...e.extensions };
+  }
+  // Validation/coercion errors arrive as graphql-js GraphQLError; carry the
+  // source error so callers can inspect the original (non-enumerable).
+  Object.defineProperty(h, "originalError", {
+    value: e.originalError ?? e,
+    enumerable: false,
+    configurable: true,
+  });
   return h;
 }
 
