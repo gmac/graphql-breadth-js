@@ -230,23 +230,41 @@ describe("graphql-js interpreter shim", () => {
       assert.deepStrictEqual(captured.variableValues, { id: "1" });
     });
 
-    test("accessing info.path throws ImplementationError", () => {
+    test("info.path is a normalized Path rebuilt from the scope chain", () => {
+      let captured: unknown;
+      const userType = new GraphQLObjectType({
+        name: "User",
+        fields: {
+          name: {
+            type: GraphQLString,
+            resolve: (src, _args, _ctx, info) => {
+              captured = info.path;
+              return (src as { name: string }).name;
+            },
+          },
+        },
+      });
       const schema = new GraphQLSchema({
         query: new GraphQLObjectType({
           name: "Query",
           fields: {
-            usesPath: {
-              type: GraphQLString,
-              resolve: (_src, _args, _ctx, info) => String(info.path),
-            },
+            user: { type: userType, resolve: () => ({ name: "ada" }) },
           },
         }),
       });
 
-      assert.throws(() => execute(schema, `{ usesPath }`), ImplementationError);
-      assert.throws(() => execute(schema, `{ usesPath }`),
-        /accessed 'info\.path'.*no per-object resolution path/,
-      );
+      const result = execute(schema, `{ user { name } }`);
+      assert.deepStrictEqual(result.data, { user: { name: "ada" } });
+
+      // No list indices (breadth resolves a level together); the path is the
+      // response-key ancestry with each key's parent typename.
+      const path = captured as { key: string; prev?: unknown; typename: string };
+      assert.strictEqual(path.key, "name");
+      assert.strictEqual(path.typename, "User");
+      const prev = path.prev as { key: string; prev?: unknown; typename: string };
+      assert.strictEqual(prev.key, "user");
+      assert.strictEqual(prev.typename, "Query");
+      assert.strictEqual(prev.prev, undefined);
     });
 
     test("manually constructed InterpretedFieldResolver works inside a hand-built ResolverMap", () => {

@@ -30,10 +30,13 @@ import { isThenable } from "./util.ts";
  *     `abstractType.resolveType` or falls back to walking
  *     `isTypeOf` on each possible type.
  *
- * Restrictions, surfaced as errors:
+ * Notes:
  *   - `info.path` — breadth-first execution resolves all objects at a level
- *     together, so there is no per-object resolution path. Accessing
- *     `info.path` throws an `ImplementationError`. All other
+ *     together, so there is no per-object resolution path with list indices.
+ *     `info.path` is instead populated with a *normalized* `Path` (the field's
+ *     response-key ancestry, without list indices) reconstructed from the
+ *     execution scope chain, which is what path-keyed resolver helpers (e.g.
+ *     per-field DataLoader cache keys) actually need. All other
  *     `GraphQLResolveInfo` fields are populated for field resolvers.
  *   - Abstract type resolvers (`resolveType` / `isTypeOf`) still receive a
  *     stub `info` that throws on any access — the planner invokes them
@@ -41,6 +44,41 @@ import { isThenable } from "./util.ts";
  *   - Async `resolveType` / `isTypeOf` — abstract type discrimination must
  *     be synchronous. Returning a `Promise` throws an `ImplementationError`.
  */
+
+/**
+ * graphql-js does not publicly export its `Path` type, so model its shape
+ * (`{ prev, key, typename }`) locally — this is what `GraphQLResolveInfo.path` is.
+ */
+interface ResolvePath {
+  readonly prev: ResolvePath | undefined;
+  readonly key: string | number;
+  readonly typename: string | undefined;
+}
+
+/**
+ * Reconstruct a *normalized* `Path` for an interpreted resolver from the
+ * `ExecutionField` scope chain. Breadth-first execution resolves every object at
+ * a level together, so there is no per-object path with list indices — but the
+ * field's response-key ancestry (and the type each key is defined on) is known,
+ * which is exactly the normalized path that path-keyed helpers rely on. Each
+ * segment's `typename` is the type the field is selected on, matching graphql-js'
+ * `addPath(prev, key, parentType.name)` semantics.
+ */
+function buildNormalizedPath(execField: ExecutionField): ResolvePath {
+  const segments: Array<{ key: string; typename: string }> = [];
+  let field: ExecutionField | null = execField;
+  while (field) {
+    segments.push({ key: field.key, typename: field.scope.parentType.name });
+    field = field.scope.parentField;
+  }
+  segments.reverse();
+
+  let path: ResolvePath | undefined;
+  for (const segment of segments) {
+    path = { prev: path, key: segment.key, typename: segment.typename };
+  }
+  return path as ResolvePath;
+}
 
 function makeInfo(execField: ExecutionField): GraphQLResolveInfo {
   const executor = execField.executor;
@@ -55,14 +93,15 @@ function makeInfo(execField: ExecutionField): GraphQLResolveInfo {
     operation: executor.operation,
     variableValues: executor.variables,
   };
+  // Build the normalized path lazily so resolvers that never read `info.path`
+  // pay nothing.
+  let cachedPath: ResolvePath | null = null;
   Object.defineProperty(info, "path", {
-    get(): never {
-      throw new ImplementationError(
-        `Interpreted resolver for '${execField.scope.parentType.name}.${execField.name}' ` +
-          `accessed 'info.path', but breadth-first execution resolves all objects at a ` +
-          `level together so there is no per-object resolution path. All other ` +
-          `GraphQLResolveInfo fields are populated.`,
-      );
+    get(): ResolvePath {
+      if (cachedPath === null) {
+        cachedPath = buildNormalizedPath(execField);
+      }
+      return cachedPath;
     },
     enumerable: false,
     configurable: false,
