@@ -149,6 +149,32 @@ describe("graphql-js interpreter shim", () => {
       assert.strictEqual(result.errors?.[0]?.message, "interpreted boom");
     });
 
+    test("preserves the original thrown error on the formatted error", () => {
+      class CustomError extends Error {}
+      const cause = new CustomError("nope");
+      const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+          name: "Query",
+          fields: {
+            boom: {
+              type: GraphQLString,
+              resolve: () => {
+                throw cause;
+              },
+            },
+          },
+        }),
+      });
+
+      const result = execute(schema, `{ boom }`);
+      assert.strictEqual(result.errors?.[0]?.message, "nope");
+      // Non-enumerable, so it does not serialize, but is recoverable by callers.
+      assert.strictEqual(
+        (result.errors?.[0] as { originalError?: unknown }).originalError,
+        cause,
+      );
+    });
+
     test("the info argument is populated with field, schema, and document state", () => {
       const captured: Record<string, unknown> = {};
       const userType = new GraphQLObjectType({
