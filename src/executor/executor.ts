@@ -1,13 +1,15 @@
-import {
+import type {
   DocumentNode,
   GraphQLObjectType,
   GraphQLSchema,
-  Kind,
   OperationDefinitionNode,
   FragmentDefinitionNode,
   GraphQLLeafType,
   GraphQLOutputType,
   GraphQLAbstractType,
+} from "graphql";
+import {
+  Kind,
   isAbstractType,
   isObjectType,
   isCompositeType,
@@ -30,17 +32,17 @@ import {
   UnknownLazyRejectionError,
   UNREPORTED_ERROR,
   type FormattedError,
-} from "../errors";
-import type { FieldResolver } from "../field_resolvers";
-import { LazyLoader, type LazyLoaderConstructor } from "../lazy_loader";
-import { isListLike, isThenable, unwrapNonNull, unwrapType, UNDEFINED } from "../util";
-import { AbstractExecutionScope } from "./abstract_execution_scope";
-import { ErrorResultFormatter } from "./error_result_formatter";
-import { ExecutionField } from "./execution_field";
-import { ExecutionPlanner } from "./execution_planner";
-import { ExecutionPromise } from "./execution_promise";
-import { ExecutionScope } from "./execution_scope";
-import type { ResolverMap, TypeResolverFn } from "./types";
+} from "../errors.ts";
+import type { FieldResolver } from "../field_resolvers.ts";
+import { LazyLoader, type LazyLoaderConstructor } from "../lazy_loader.ts";
+import { isListLike, isThenable, unwrapNonNull, unwrapType, UNDEFINED } from "../util.ts";
+import { AbstractExecutionScope } from "./abstract_execution_scope.ts";
+import { ErrorResultFormatter } from "./error_result_formatter.ts";
+import { ExecutionField } from "./execution_field.ts";
+import { ExecutionPlanner } from "./execution_planner.ts";
+import { ExecutionPromise } from "./execution_promise.ts";
+import { ExecutionScope } from "./execution_scope.ts";
+import type { ResolverMap, TypeResolverFn } from "./types.ts";
 
 export interface BuildOptions {
   schema: GraphQLSchema;

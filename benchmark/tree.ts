@@ -16,15 +16,15 @@
 //   }
 
 import { parse, print } from "graphql";
-import { bench, benchAsync, compare, envInts, envList } from "./bench";
-import { buildTree } from "./data";
+import { bench, benchAsync, compare, envInts, envList } from "./bench.ts";
+import { buildTree } from "./data.ts";
 import {
   execBreadth,
   execGraphQLJsAsync,
   execGraphQLJsSync,
   isAsyncFields,
   validateResultsMatch,
-} from "./exec";
+} from "./exec.ts";
 
 const depths = envInts("DEPTHS", "1,10,18");
 const fields = envList("FIELDS", "id");

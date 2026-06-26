@@ -2,18 +2,19 @@
   "name": "graphql-breadth",
   "version": "0.1.0",
   "description": "Breadth-first GraphQL executor",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "tsx --test test/**/*.test.ts",
-    "test:watch": "tsx --test --watch test/**/*.test.ts",
-    "bench:tree": "tsx benchmark/tree.ts",
-    "bench:list": "tsx benchmark/list.ts",
-    "bench:tree-list": "tsx benchmark/tree_list.ts",
-    "mem:tree": "NODE_OPTIONS=--expose-gc tsx benchmark/memory_tree.ts",
-    "mem:list": "NODE_OPTIONS=--expose-gc tsx benchmark/memory_list.ts",
-    "mem:tree-list": "NODE_OPTIONS=--expose-gc tsx benchmark/memory_tree_list.ts"
+    "test": "node --test test/**/*.test.ts",
+    "test:watch": "node --test --watch test/**/*.test.ts",
+    "bench:tree": "node benchmark/tree.ts",
+    "bench:list": "node benchmark/list.ts",
+    "bench:tree-list": "node benchmark/tree_list.ts",
+    "mem:tree": "NODE_OPTIONS=--expose-gc node benchmark/memory_tree.ts",
+    "mem:list": "NODE_OPTIONS=--expose-gc node benchmark/memory_list.ts",
+    "mem:tree-list": "NODE_OPTIONS=--expose-gc node benchmark/memory_tree_list.ts"
   },
   "files": [
     "dist",
@@ -25,7 +26,6 @@
   "devDependencies": {
     "@types/node": "^20.12.7",
     "dataloader": "^2.2.3",
-    "tsx": "^4.22.0",
     "typescript": "^5.4.5"
   },
   "engines": {

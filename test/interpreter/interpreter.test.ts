@@ -24,8 +24,8 @@ import {
   type LazyLoaderConstructor,
   type ResolveResult,
   type ResolverMap,
-} from "../../src";
-import type { ExecutionField } from "../../src/executor/execution_field";
+} from "../../src/index.ts";
+import type { ExecutionField } from "../../src/executor/execution_field.ts";
 
 type ExecuteOptions = {
   rootObject?: unknown;

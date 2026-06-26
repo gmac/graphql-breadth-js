@@ -18,18 +18,18 @@ import {
   type SelectionNode,
   type ValueNode,
 } from "graphql";
-import { DocumentError, ExecutionError } from "../errors";
-import { FieldResolver, ObjectKeyResolver } from "../field_resolvers";
+import { DocumentError, ExecutionError } from "../errors.ts";
+import { FieldResolver, ObjectKeyResolver } from "../field_resolvers.ts";
 import {
   ENTRYPOINT_RESOLVERS as INTROSPECTION_ENTRYPOINT_RESOLVERS,
   TYPENAME_RESOLVER as INTROSPECTION_TYPENAME_RESOLVER,
   TYPE_RESOLVERS as INTROSPECTION_TYPE_RESOLVERS,
-} from "../introspection";
-import { unwrapType } from "../util";
-import { ExecutionField } from "./execution_field";
-import { ExecutionScope } from "./execution_scope";
-import type { Executor } from "./executor";
-import type { ResolverMap } from "./types";
+} from "../introspection.ts";
+import { unwrapType } from "../util.ts";
+import { ExecutionField } from "./execution_field.ts";
+import { ExecutionScope } from "./execution_scope.ts";
+import type { Executor } from "./executor.ts";
+import type { ResolverMap } from "./types.ts";
 
 /**
  * Builds the breadth-first execution tree for a set of concrete scopes, and runs the
