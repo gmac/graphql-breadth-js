@@ -7,10 +7,12 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLObjectType,
+  type GraphQLResolveInfo,
   GraphQLSchema,
   GraphQLString,
   GraphQLUnionType,
   buildSchema,
+  graphql,
 } from "graphql";
 import {
   Executor,
@@ -64,6 +66,20 @@ function executeAsync(
       context: options.context ?? {},
     }).result,
   );
+}
+
+/** A graphql-js `Path` node — `info.path`'s shape, modelled locally. */
+type PathNode = { prev?: PathNode; key: string | number; typename?: string };
+
+/** Flatten a `{ prev, key, typename }` linked Path into a root→leaf array. */
+function flattenPath(path: PathNode | undefined): Array<{ key: string | number; typename?: string }> {
+  const out: Array<{ key: string | number; typename?: string }> = [];
+  let node = path;
+  while (node) {
+    out.unshift({ key: node.key, typename: node.typename });
+    node = node.prev;
+  }
+  return out;
 }
 
 describe("graphql-js interpreter shim", () => {
@@ -230,7 +246,7 @@ describe("graphql-js interpreter shim", () => {
       assert.deepStrictEqual(captured.variableValues, { id: "1" });
     });
 
-    test("info.path is a normalized Path rebuilt from the scope chain", () => {
+    test("info.path is the real graphql-js Path (response keys + typenames)", () => {
       let captured: unknown;
       const userType = new GraphQLObjectType({
         name: "User",
@@ -253,18 +269,217 @@ describe("graphql-js interpreter shim", () => {
         }),
       });
 
-      const result = execute(schema, `{ user { name } }`);
-      assert.deepStrictEqual(result.data, { user: { name: "ada" } });
+      const result = execute(schema, `{ alias: user { name } }`);
+      assert.deepStrictEqual(result.data, { alias: { name: "ada" } });
 
-      // No list indices (breadth resolves a level together); the path is the
-      // response-key ancestry with each key's parent typename.
-      const path = captured as { key: string; prev?: unknown; typename: string };
-      assert.strictEqual(path.key, "name");
-      assert.strictEqual(path.typename, "User");
-      const prev = path.prev as { key: string; prev?: unknown; typename: string };
-      assert.strictEqual(prev.key, "user");
-      assert.strictEqual(prev.typename, "Query");
-      assert.strictEqual(prev.prev, undefined);
+      // Field segments use the response key (alias) and the type the field is
+      // selected on; no list indices since nothing here is a list.
+      assert.deepStrictEqual(flattenPath(captured as PathNode), [
+        { key: "alias", typename: "Query" },
+        { key: "name", typename: "User" },
+      ]);
+    });
+
+    test("info.path carries real list indices, matching graphql-js exactly", async () => {
+      // Nested-list schema; the leaf resolver records the precise path keyed by
+      // its own (unique) value, so we can compare graphql-js vs. the breadth
+      // executor object-for-object.
+      const sdl = `
+        type Variant { sku: String }
+        type Product { variants: [[Variant]] }
+        type Query { products: [Product] }
+      `;
+      const rootValue = {
+        products: [
+          { variants: [[{ sku: "a" }, { sku: "b" }], [{ sku: "c" }]] },
+          { variants: [[{ sku: "d" }]] },
+        ],
+      };
+      const query = `{ products { variants { sku } } }`;
+
+      function buildPathCapturingSchema(): {
+        schema: GraphQLSchema;
+        captured: Map<string, ReturnType<typeof flattenPath>>;
+      } {
+        const schema = buildSchema(sdl);
+        const captured = new Map<string, ReturnType<typeof flattenPath>>();
+        (schema.getType("Variant") as GraphQLObjectType).getFields()["sku"]!.resolve = (
+          src: unknown,
+          _args: unknown,
+          _ctx: unknown,
+          info: GraphQLResolveInfo,
+        ) => {
+          const sku = (src as { sku: string }).sku;
+          captured.set(sku, flattenPath(info.path as PathNode));
+          return sku;
+        };
+        return { schema, captured };
+      }
+
+      const reference = buildPathCapturingSchema();
+      await graphql({ schema: reference.schema, source: query, rootValue });
+
+      const breadth = buildPathCapturingSchema();
+      execute(breadth.schema, query, {
+        rootObject: rootValue,
+        resolvers: interpretSchema(breadth.schema),
+      });
+
+      assert.deepStrictEqual(
+        [...breadth.captured.keys()].sort(),
+        ["a", "b", "c", "d"],
+      );
+      // graphql-js is ground truth for the exact indices/typenames.
+      for (const sku of breadth.captured.keys()) {
+        assert.deepStrictEqual(
+          breadth.captured.get(sku),
+          reference.captured.get(sku),
+          `path mismatch for "${sku}"`,
+        );
+      }
+      // Spot-check the actual expected shape too.
+      assert.deepStrictEqual(breadth.captured.get("c"), [
+        { key: "products", typename: "Query" },
+        { key: 0, typename: undefined },
+        { key: "variants", typename: "Product" },
+        { key: 1, typename: undefined },
+        { key: 0, typename: undefined },
+        { key: "sku", typename: "Variant" },
+      ]);
+    });
+
+    test("info.path indices are correct across abstract-type buckets", async () => {
+      // Interleaved concrete types in one list: the breadth executor buckets
+      // them by type, so the second bucket's list indices must still be the
+      // real positions (2 and 3), not bucket-local (0 and 1).
+      const sdl = `
+        interface Node { kind: String }
+        type Alpha implements Node { kind: String, tag: String }
+        type Beta implements Node { kind: String, tag: String }
+        type Query { nodes: [Node] }
+      `;
+      const rootValue = {
+        nodes: [
+          { kind: "Alpha", tag: "a0" },
+          { kind: "Beta", tag: "b1" },
+          { kind: "Beta", tag: "b2" },
+          { kind: "Alpha", tag: "a3" },
+        ],
+      };
+      const query = `{ nodes { ... on Alpha { tag } ... on Beta { tag } } }`;
+
+      function build(): {
+        schema: GraphQLSchema;
+        captured: Map<string, ReturnType<typeof flattenPath>>;
+      } {
+        const schema = buildSchema(sdl);
+        const captured = new Map<string, ReturnType<typeof flattenPath>>();
+        (schema.getType("Node") as GraphQLInterfaceType).resolveType = (value) =>
+          (value as { kind: string }).kind;
+        for (const typeName of ["Alpha", "Beta"]) {
+          (schema.getType(typeName) as GraphQLObjectType).getFields()["tag"]!.resolve = (
+            src: unknown,
+            _args: unknown,
+            _ctx: unknown,
+            info: GraphQLResolveInfo,
+          ) => {
+            const tag = (src as { tag: string }).tag;
+            captured.set(tag, flattenPath(info.path as PathNode));
+            return tag;
+          };
+        }
+        return { schema, captured };
+      }
+
+      const reference = build();
+      await graphql({ schema: reference.schema, source: query, rootValue });
+
+      const breadth = build();
+      execute(breadth.schema, query, {
+        rootObject: rootValue,
+        resolvers: interpretSchema(breadth.schema),
+      });
+
+      assert.deepStrictEqual([...breadth.captured.keys()].sort(), ["a0", "a3", "b1", "b2"]);
+      for (const tag of breadth.captured.keys()) {
+        assert.deepStrictEqual(
+          breadth.captured.get(tag),
+          reference.captured.get(tag),
+          `path mismatch for "${tag}"`,
+        );
+      }
+      // The fourth node (Alpha "a3", an Alpha bucket sibling of "a0") keeps its
+      // real index 3.
+      assert.deepStrictEqual(breadth.captured.get("a3"), [
+        { key: "nodes", typename: "Query" },
+        { key: 3, typename: undefined },
+        { key: "tag", typename: "Alpha" },
+      ]);
+      // The Beta bucket's second member keeps real index 2, not bucket-local 1.
+      assert.deepStrictEqual(breadth.captured.get("b2"), [
+        { key: "nodes", typename: "Query" },
+        { key: 2, typename: undefined },
+        { key: "tag", typename: "Beta" },
+      ]);
+    });
+
+    test("info.path keeps real list indices when earlier list entries are null", () => {
+      let captured: unknown;
+      const schema = buildSchema(`
+        type Item { label: String }
+        type Query { items: [Item] }
+      `);
+      (schema.getType("Item") as GraphQLObjectType).getFields()["label"]!.resolve = (
+        src: unknown,
+        _args: unknown,
+        _ctx: unknown,
+        info: GraphQLResolveInfo,
+      ) => {
+        captured = info.path;
+        return (src as { label: string }).label;
+      };
+
+      // First two list slots are null; the surviving item is at real index 2.
+      const result = execute(schema, `{ items { label } }`, {
+        rootObject: { items: [null, null, { label: "third" }] },
+      });
+      assert.deepStrictEqual(result.data, {
+        items: [null, null, { label: "third" }],
+      });
+      assert.deepStrictEqual(flattenPath(captured as PathNode), [
+        { key: "items", typename: "Query" },
+        { key: 2, typename: undefined },
+        { key: "label", typename: "Item" },
+      ]);
+    });
+
+    test("info.schemaPath is the static schema-name ancestry (no aliases, no indices)", () => {
+      let captured: unknown;
+      const schema = buildSchema(`
+        type Variant { sku: String }
+        type Product { variants: [Variant] }
+        type Query { products: [Product] }
+      `);
+      (schema.getType("Variant") as GraphQLObjectType).getFields()["sku"]!.resolve = (
+        src: unknown,
+        _args: unknown,
+        _ctx: unknown,
+        info: GraphQLResolveInfo,
+      ) => {
+        // schemaPath is a breadth-executor extension on info.
+        captured = (info as unknown as { schemaPath: ReadonlyArray<string> }).schemaPath;
+        return (src as { sku: string }).sku;
+      };
+
+      const result = execute(schema, `{ shelf: products { items: variants { sku } } }`, {
+        rootObject: { products: [{ variants: [{ sku: "x" }, { sku: "y" }] }] },
+      });
+      assert.deepStrictEqual(result.data, {
+        shelf: [{ items: [{ sku: "x" }, { sku: "y" }] }],
+      });
+      // Aliases (shelf/items) and list indices are absent — it's the stable,
+      // static schema field names.
+      assert.deepStrictEqual(captured, ["products", "variants", "sku"]);
     });
 
     test("manually constructed InterpretedFieldResolver works inside a hand-built ResolverMap", () => {
