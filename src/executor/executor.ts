@@ -42,6 +42,7 @@ import { ExecutionField } from "./execution_field.ts";
 import { ExecutionPlanner } from "./execution_planner.ts";
 import { ExecutionPromise } from "./execution_promise.ts";
 import { ExecutionScope } from "./execution_scope.ts";
+import { PathFormatter } from "./path_formatter.ts";
 import type { ResolverMap, TypeResolverFn } from "./types.ts";
 
 export interface BuildOptions {
@@ -95,6 +96,7 @@ export class Executor {
   private loaderCache: Map<LazyLoaderConstructor, Map<string, LazyLoader>> = new Map();
   private _errorResultFormatter: ErrorResultFormatter | null = null;
   private _planner: ExecutionPlanner | null = null;
+  private _paths: PathFormatter | null = null;
 
   static build(options: BuildOptions): Executor {
     const document =
@@ -180,6 +182,18 @@ export class Executor {
 
   errorCount(): number {
     return this.invalidatedResults.size;
+  }
+
+  /**
+   * Lazily-built formatter for *real*, spec-compliant object paths (the kind
+   * graphql-js exposes on `info.path`, with list indices). Indexing scopes is
+   * extra work, so it's only created when something actually asks for a path.
+   */
+  get paths(): PathFormatter {
+    if (!this._paths) {
+      this._paths = new PathFormatter();
+    }
+    return this._paths;
   }
 
   get planner(): ExecutionPlanner {

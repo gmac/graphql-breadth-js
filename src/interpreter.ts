@@ -9,6 +9,7 @@ import {
 } from "graphql";
 import { ExecutionError, ImplementationError } from "./errors.ts";
 import { ExecutionField } from "./executor/execution_field.ts";
+import type { ResolvePath } from "./executor/path_formatter.ts";
 import type { ResolverEntry, ResolverMap, TypeResolverFn } from "./executor/types.ts";
 import { FieldResolver, ObjectKeyResolver, type ResolveResult } from "./field_resolvers.ts";
 import { LazyLoader, type LazyLoaderConstructor } from "./lazy_loader.ts";
@@ -30,11 +31,20 @@ import { isThenable } from "./util.ts";
  *     `abstractType.resolveType` or falls back to walking
  *     `isTypeOf` on each possible type.
  *
- * Restrictions, surfaced as errors:
- *   - `info.path` — breadth-first execution resolves all objects at a level
- *     together, so there is no per-object resolution path. Accessing
- *     `info.path` throws an `ImplementationError`. All other
- *     `GraphQLResolveInfo` fields are populated for field resolvers.
+ * Notes:
+ *   - `info.path` — populated with the *real*, spec-compliant graphql-js `Path`
+ *     (a `{ prev, key, typename }` linked list, with list indices) for the
+ *     object the resolver is currently handling, reconstructed on demand via the
+ *     executor's `PathFormatter`. This is the "slow and precise" path: computing
+ *     it indexes the relevant scopes, so it's built lazily — resolvers that
+ *     never read `info.path` pay nothing.
+ *   - `info.schemaPath` — a non-standard accessor carrying the "fast and static"
+ *     path: the field's schema-name ancestry without list indices
+ *     (`ExecutionField.schemaPath`). It's a dirt-cheap, stable key (alias- and
+ *     index-independent), which is what most path-keyed resolver helpers (e.g.
+ *     per-field DataLoader cache keys) actually want. Cast `info` to
+ *     `BreadthResolveInfo` to read it. All other `GraphQLResolveInfo` fields are
+ *     populated for field resolvers.
  *   - Abstract type resolvers (`resolveType` / `isTypeOf`) still receive a
  *     stub `info` that throws on any access — the planner invokes them
  *     without an `ExecutionField` in scope.
@@ -42,8 +52,31 @@ import { isThenable } from "./util.ts";
  *     be synchronous. Returning a `Promise` throws an `ImplementationError`.
  */
 
-function makeInfo(execField: ExecutionField): GraphQLResolveInfo {
+/**
+ * `GraphQLResolveInfo` as seen by interpreted resolvers, extended with the
+ * breadth executor's static `schemaPath` accessor. Standard graphql-js
+ * resolvers can read `info.path` directly; `info.schemaPath` requires this type.
+ */
+export interface BreadthResolveInfo extends GraphQLResolveInfo {
+  /**
+   * The field's schema-name ancestry (no aliases, no list indices) — a cheap,
+   * static, stable key. See {@link InterpretedFieldResolver}.
+   */
+  readonly schemaPath: ReadonlyArray<string>;
+}
+
+/**
+ * Build the `GraphQLResolveInfo` for an interpreted field. A single `info` is
+ * reused across the breadth of objects the field resolves; `setObjectIndex`
+ * selects which object `info.path` describes. Both `path` (precise, per-object)
+ * and `schemaPath` (static) are lazy getters so unused ones cost nothing.
+ */
+function makeInfo(execField: ExecutionField): {
+  info: GraphQLResolveInfo;
+  setObjectIndex: (index: number) => void;
+} {
   const executor = execField.executor;
+  let objectIndex = 0;
   const info = {
     fieldName: execField.name,
     fieldNodes: execField.nodes,
@@ -55,19 +88,35 @@ function makeInfo(execField: ExecutionField): GraphQLResolveInfo {
     operation: executor.operation,
     variableValues: executor.variables,
   };
+  // The precise path depends on which object in the breadth is being resolved,
+  // so cache per index. Resolvers read `info.path` synchronously during their
+  // call, before `setObjectIndex` advances to the next object.
+  let cachedPath: ResolvePath | null = null;
+  let cachedPathIndex = -1;
   Object.defineProperty(info, "path", {
-    get(): never {
-      throw new ImplementationError(
-        `Interpreted resolver for '${execField.scope.parentType.name}.${execField.name}' ` +
-          `accessed 'info.path', but breadth-first execution resolves all objects at a ` +
-          `level together so there is no per-object resolution path. All other ` +
-          `GraphQLResolveInfo fields are populated.`,
-      );
+    get(): ResolvePath {
+      if (cachedPath === null || cachedPathIndex !== objectIndex) {
+        cachedPath = executor.paths.resolveInfoPath(execField, objectIndex);
+        cachedPathIndex = objectIndex;
+      }
+      return cachedPath;
     },
     enumerable: false,
     configurable: false,
   });
-  return info as unknown as GraphQLResolveInfo;
+  Object.defineProperty(info, "schemaPath", {
+    get(): ReadonlyArray<string> {
+      return execField.schemaPath;
+    },
+    enumerable: false,
+    configurable: false,
+  });
+  return {
+    info: info as unknown as GraphQLResolveInfo,
+    setObjectIndex: (index: number): void => {
+      objectIndex = index;
+    },
+  };
 }
 
 /**
@@ -111,7 +160,7 @@ export class InterpretedFieldResolver<TSource = unknown, TContext = unknown> ext
 
   override resolve(execField: ExecutionField, context: TContext): ResolveResult {
     const args = execField.arguments;
-    const info = makeInfo(execField);
+    const { info, setObjectIndex } = makeInfo(execField);
     const objects = execField.objects;
     const results: unknown[] = new Array(objects.length);
     const promises: PromiseLike<unknown>[] = [];
@@ -119,6 +168,7 @@ export class InterpretedFieldResolver<TSource = unknown, TContext = unknown> ext
 
     for (let i = 0; i < objects.length; i++) {
       let value: unknown;
+      setObjectIndex(i);
       try {
         value = this.resolveFn(objects[i] as TSource, args, context, info);
       } catch (e) {

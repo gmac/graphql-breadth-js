@@ -3,6 +3,7 @@ export type { BuildOptions, GraphQLResult } from "./executor/executor.ts";
 export { ExecutionField } from "./executor/execution_field.ts";
 export { ExecutionScope } from "./executor/execution_scope.ts";
 export { AbstractExecutionScope } from "./executor/abstract_execution_scope.ts";
+export { PathFormatter, type ResolvePath } from "./executor/path_formatter.ts";
 export { ExecutionPromise, Deferred } from "./executor/execution_promise.ts";
 export { HasAttributes } from "./executor/has_attributes.ts";
 export { LazyLoader, type LazyLoaderConstructor } from "./lazy_loader.ts";
@@ -23,6 +24,7 @@ export {
   InterpretedFieldResolver,
   InterpretedPromiseLoader,
   interpretSchema,
+  type BreadthResolveInfo,
   type InterpretSchemaOptions,
 } from "./interpreter.ts";
 export {

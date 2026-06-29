@@ -379,7 +379,7 @@ const resolvers = interpretSchema(schema, {
 **Support notes:**
 
 - Resolvers that return native Promises are awaited together as one breadth-loader cycle via `InterpretedPromiseLoader`, so a list of N async resolvers still yields once, not N times. This is generally compatible though may produce different results for situations designed around a depth-based execution flow.
-- Accessing resolver `info.path` is not supported. Breadth has no concept of runtime subtrees (though this gap is possible to fill with overhead).
+- Resolver `info.path` is the real, spec-compliant graphql-js `Path` (response keys plus list indices) for the object being resolved, reconstructed on demand via the executor's `PathFormatter`. Because breadth resolves a level all at once, the exact path of any single object is only known when asked for, so this is the "slow and precise" option — it indexes the scopes it walks, and is built lazily, so resolvers that never read `info.path` pay nothing. For a "fast and static" alternative, read `info.schemaPath` (cast `info` to `BreadthResolveInfo`): the field's schema-name ancestry with no aliases or indices — a dirt-cheap, stable key, which is what most path-keyed helpers (e.g. per-field DataLoader cache keys) actually want.
 - No support for lazy abstract type resolution. `resolveType` and `isTypeOf` returning a `Promise` throw an `ImplementationError`.
 
 ## Development
